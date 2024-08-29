@@ -105,3 +105,43 @@ app.post('/addTest', async (req, res) => {
       res.status(500).json({ error: err.message });
     }
   });
+
+app.get('/calculatePO', async (req,res)=> {
+   // const {DeptCode} = req.body; //refer to CS dept usually
+   // console.log(DeptCode);
+    try{
+    const courses = await Course.find(); // Fetch all courses from the database
+
+    /*
+    const department = await Department.findOneAndUpdate(
+        { DeptCode: DeptCode },
+        { new: true, upsert: true } // Create if not exists, return the updated document
+      );
+      */
+    PO_arr = [0,0,0,0,0,0,0,0,0,0,0,0]; //array of 12 integers
+    PO_denominator = [0,0,0,0,0,0,0,0,0,0,0,0];
+    courses.forEach(course=> {
+//        console.log(course);
+        let avg = (course.CO1_attainment+course.CO2_attainment+course.CO3_attainment+course.CO4_attainment)/4;
+        console.log(avg);
+        for(let i=0; i<PO_arr.length; i++){
+            PO_arr[i] += course.PO_mapping[i] * avg;
+            PO_denominator[i] += course.PO_mapping[i];
+        }
+    });
+    let document = {};
+    for(let i=0; i<12; i++)
+        if(i<10)
+            document[`PO${i+1}`] = PO_arr[i] / PO_denominator[i];
+        else
+            document[`PSO${i%10+1}`] = PO_arr[i]/PO_denominator[i];
+    
+    for(const key in document){
+        document[key] = parseFloat((document[key]*100).toFixed(2));
+    }
+    res.status(201).json({ message: 'PO computed', data: document });
+    }
+    catch(err){
+        res.status(500).json({ error: err.message });     
+    }
+});
