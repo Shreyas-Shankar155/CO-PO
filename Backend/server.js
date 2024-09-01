@@ -145,3 +145,15 @@ app.get('/calculatePO', async (req,res)=> {
         res.status(500).json({ error: err.message });     
     }
 });
+
+app.get('/getAllCourses', async (req,res)=> {
+  
+  try{
+    const courses = await Course.find();
+    res.status(201).json({data: courses});
+  }
+  catch (err){
+    res.status(500).json({error: err.message});
+  }
+  
+});
